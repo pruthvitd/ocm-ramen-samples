@@ -1,6 +1,6 @@
 ---
 resources:
   - ../base
-namespace: vm-pvc
+namespace: ramen-ops
 commonLabels:
   app: vm-pvc
