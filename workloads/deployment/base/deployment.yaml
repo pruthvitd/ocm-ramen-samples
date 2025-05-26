@@ -13,6 +13,11 @@ spec:
       labels:
         appname: busybox
     spec:
+      securityContext:
+        seLinuxOptions:
+          type: spc_t
+        runAsGroup: 0
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: logger
           image: quay.io/nirsof/busybox:stable
@@ -34,6 +39,8 @@ spec:
           volumeMounts:
             - name: varlog
               mountPath: /var/log
+      serviceAccountName: busybox-sa
+      serviceAccount: busybox-sa
       volumes:
         - name: varlog
           persistentVolumeClaim:
