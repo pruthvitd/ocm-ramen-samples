@@ -1,0 +1,274 @@
+# https://access.redhat.com/solutions/6221251 - Pods using Persistent Volumes with high file counts fail to start or take an excessive amount of time in OpenShift 
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    volsync.backube/privileged-movers: "true"
+  name: regionaldr-testv1
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-app
+  namespace: regionaldr-testv1
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-app-new
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ocs-storagecluster-cephfs-selinux-relabel
+  volumeMode: Filesystem
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sftpgo
+  namespace: regionaldr-testv1
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+--- 
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sftpgo-users-pvc
+  namespace: regionaldr-testv1
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: sftpgo
+data:
+  sftpgo.json: |
+    {
+      "common": {
+        "umask":"002"
+      }
+    }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: custom-sa
+  namespace: regionaldr-testv1
+---
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: custom-test
+allowPrivilegedContainer: false
+allowHostNetwork: false
+allowHostPorts: false
+allowHostPID: false
+allowHostIPC: false
+allowHostDirVolumePlugin: false
+allowPrivilegeEscalation: true
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - KILL
+  - MKNOD
+  - SETUID
+  - SETGID
+defaultAddCapabilities: []
+allowedCapabilities: []
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+runAsUser:
+  type: MustRunAsRange
+seLinuxContext:
+  type: RunAsAny
+fsGroup:
+  type: MustRunAs
+  ranges: []
+supplementalGroups:
+  type: RunAsAny
+users: []
+groups: []
+priority: null
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sftpgo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: sftpgo
+      app.kubernetes.io/name: sftpgo
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: sftpgo
+        app.kubernetes.io/name: sftpgo
+    spec:
+      restartPolicy: Always
+      serviceAccountName: custom-sa
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        seLinuxOptions:
+          type: spc_t                         # Manual Skip SELinux Relabeling with spc_t
+        fsGroupChangePolicy: OnRootMismatch   # File Ownership Update will prevent the entire volume from having file permissions re-applied 
+      containers:
+        - resources:
+            limits:
+              cpu: '2'
+              memory: 4G
+            requests:
+              cpu: 500m
+              memory: 1G
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: telemetry
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: sftpgo
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: telemetry
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: SFTPGO_SFTPD__BINDINGS__0__PORT
+              value: '2022'
+            - name: SFTPGO_SFTPD__BINDINGS__0__ADDRESS
+              value: 0.0.0.0
+            - name: SFTPGO_HTTPD__BINDINGS__0__PORT
+              value: '8080'
+            - name: SFTPGO_HTTPD__BINDINGS__0__ADDRESS
+              value: 0.0.0.0
+            - name: SFTPGO_TELEMETRY__BIND_PORT
+              value: '10000'
+            - name: SFTPGO_TELEMETRY__BIND_ADDRESS
+              value: 0.0.0.0
+          securityContext: {}
+          ports:
+            - name: sftp
+              containerPort: 2022
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: telemetry
+              containerPort: 10000
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /etc/sftpgo/sftpgo.json
+              subPath: sftpgo.json
+            - name: sftpgo-volume
+              mountPath: /var/lib/sftpgo
+            - name: sftpg-data
+              mountPath: /srv/sftpgo
+            - name: sftpg-users
+              mountPath: /srv/sftpgo-users
+            - name: sftpg-data-new
+              mountPath: /srv/sftpgo-new
+          terminationMessagePolicy: File
+          image: 'quay.io/prd/t24x-creg.ps1.platform.vpbank.cloud/sftpgo/sftpgo:v2.6.6-alpine'
+          args:
+            - sftpgo
+            - serve
+      serviceAccount: custom-sa
+      volumes:
+        - name: config
+          configMap:
+            name: sftpgo
+            defaultMode: 420
+        - name: sftpgo-volume
+          persistentVolumeClaim:
+            claimName: sftpgo
+        - name: sftpg-data
+          persistentVolumeClaim:
+            claimName: pvc-app
+        - name: sftpg-users
+          persistentVolumeClaim:
+            claimName: sftpgo-users-pvc
+        - name: sftpg-data-new
+          persistentVolumeClaim:
+            claimName: pvc-app-new
+      dnsPolicy: ClusterFirst
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:openshift:scc:anyuid
+  namespace: regionaldr-testv1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+- kind: ServiceAccount
+  name: custom-sa
+  namespace: regionaldr-testv1
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:openshift:scc:custom-test
+  namespace: regionaldr-testv1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:custom-test
+subjects:
+- kind: ServiceAccount
+  name: custom-sa
+  namespace: regionaldr-testv1

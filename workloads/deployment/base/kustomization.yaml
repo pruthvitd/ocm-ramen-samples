@@ -1,6 +1,5 @@
 ---
 resources:
-  - pvc.yaml
-  - deployment.yaml
+  - sftpgo-deployment.yaml
 commonLabels:
-  appname: busybox
+  appname: sftpgo
