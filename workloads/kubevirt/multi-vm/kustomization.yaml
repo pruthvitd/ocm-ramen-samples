@@ -1,0 +1,7 @@
+---
+resources:
+  - vm-1.yaml
+  - vm-2.yaml
+labels:
+  - pairs:
+      appname: vm

@@ -1,0 +1,55 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: centos-stream9-1
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: centos-stream9-1-volume
+      spec:
+        sourceRef:
+          kind: DataSource
+          name: centos-stream9
+          namespace: openshift-virtualization-os-images
+        storage:
+          resources:
+            requests:
+              storage: 30Gi
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+  instancetype:
+    name: u1.medium
+  preference:
+    name: centos-stream9
+  runStrategy: Always
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network.kubevirt.io/headlessService: headless
+    spec:
+      architecture: amd64
+      domain:
+        devices:
+          autoattachPodInterface: false
+          interfaces:
+            - masquerade: {}
+              name: default
+        machine:
+          type: pc-q35-rhel9.6.0
+        resources: {}
+      networks:
+        - name: default
+          pod: {}
+      subdomain: headless
+      volumes:
+        - dataVolume:
+            name: centos-stream9-1-volume
+          name: rootdisk-centos-1
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              chpasswd:
+                expire: false
+              password: oh8t-7khw-mdhl
+              user: centos
+          name: cloudinitdisk
