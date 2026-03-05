@@ -2,32 +2,52 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: db-app-sa
-  namespace: regionaldr-testv2
+  namespace: regionaldr-testv1
+  annotations:
+    ramendr.openshift.io/kubeobjects-protected: "true"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-app-sa-anyuid
+  namespace: regionaldr-testv1
+  annotations:
+    ramendr.openshift.io/kubeobjects-protected: "true"
 subjects:
   - kind: ServiceAccount
     name: db-app-sa
-    namespace: regionaldr-testv2
+    namespace: regionaldr-testv1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: system:openshift:scc:anyuid
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:openshift:scc:custom-sftpgo
+  namespace: regionaldr-testv1
+  annotations:
+    ramendr.openshift.io/kubeobjects-protected: "true"
+rules:
+  - apiGroups: ["security.openshift.io"]
+    resources: ["securitycontextconstraints"]
+    resourceNames: ["custom-sftpgo"]
+    verbs: ["use"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: system:openshift:scc:custom
-  namespace: regionaldr-testv2
+  name: system:openshift:scc:custom-sftpgo
+  namespace: regionaldr-testv1
+  annotations:
+    ramendr.openshift.io/kubeobjects-protected: "true"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:openshift:scc:custom
+  name: system:openshift:scc:custom-sftpgo
 subjects:
 - kind: ServiceAccount
   name: db-app-sa
-  namespace: regionaldr-testv2
+  namespace: regionaldr-testv1
 

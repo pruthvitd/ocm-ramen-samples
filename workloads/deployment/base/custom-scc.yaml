@@ -1,7 +1,7 @@
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
-  name: custom
+  name: custom-sftpgo
 allowPrivilegedContainer: false
 allowHostNetwork: false
 allowHostPorts: false
@@ -30,9 +30,11 @@ seLinuxContext:
   type: RunAsAny
 fsGroup:
   type: MustRunAs
-  ranges: []
+  ranges:
+    - min: 1
+      max: 65535
 supplementalGroups:
   type: RunAsAny
 users: []
 groups: []
-priority: null
+priority: 10
