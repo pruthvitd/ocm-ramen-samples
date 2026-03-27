@@ -6,6 +6,5 @@ resources:
   - cm.yaml
   - custom-scc.yaml
   - custom-sa.yaml
-  - sc.yaml
 commonLabels:
   appname: sftpgo
