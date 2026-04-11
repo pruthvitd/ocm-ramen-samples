@@ -1,11 +1,10 @@
 ---
+# Main kustomization that references both cluster-scoped and namespace-scoped resources
+# For disaster recovery operations:
+# - cluster-scoped resources are retained by ACM on the cluster
+# - namespace-scoped resources move with the application
 resources:
-  - pvc.yaml
-  - deployment.yaml
-  - ns.yaml
-  - cm.yaml
-  - custom-scc.yaml
-  - custom-sa.yaml
-  - sc.yaml
-commonLabels:
-  appname: sftpgo
+  - cluster-scoped
+  - namespace-scoped
+
+# Made with Bob

@@ -1,0 +1,63 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-app
+  namespace: regionaldr-testv2
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-app-new
+  namespace: regionaldr-testv2
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ocs-storagecluster-cephfs-selinux-relabel
+  volumeMode: Filesystem
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sftpgo
+  namespace: regionaldr-testv2
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+--- 
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sftpgo-users-pvc
+  namespace: regionaldr-testv2
+  labels:
+    regionaldr: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem

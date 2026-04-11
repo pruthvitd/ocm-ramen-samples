@@ -1,0 +1,14 @@
+---
+# Namespace-scoped resources
+# These resources are moved with the application during disaster recovery operations
+resources:
+  - ns.yaml
+  - custom-sa.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - cm.yaml
+commonLabels:
+  appname: sftpgo
+  scope: namespace
+
+# Made with Bob
