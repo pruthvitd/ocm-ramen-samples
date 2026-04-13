@@ -1,0 +1,12 @@
+---
+# Application Resources - Move with DR operations
+# These resources are created/deleted as the application moves between clusters
+resources:
+  - pvc.yaml
+  - deployment.yaml
+  - cm.yaml
+commonLabels:
+  appname: sftpgo
+  dr-scope: application
+
+# Made with Bob

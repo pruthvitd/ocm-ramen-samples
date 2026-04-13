@@ -4,4 +4,4 @@ metadata:
   annotations:
     #    volsync.backube/privileged-movers: "true"
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
-  name: regionaldr-testv2
+  name: rdr-test

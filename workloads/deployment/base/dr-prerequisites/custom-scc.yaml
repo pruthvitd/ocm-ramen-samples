@@ -2,6 +2,8 @@ apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
   name: custom
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 allowPrivilegedContainer: false
 allowHostNetwork: false
 allowHostPorts: false

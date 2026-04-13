@@ -1,0 +1,14 @@
+---
+# DR Prerequisites - Deploy on BOTH clusters initially
+# These resources are protected from deletion during DR operations
+# They must exist on both clusters for the application to work
+resources:
+  - ns.yaml
+  - sc.yaml
+  - custom-scc.yaml
+  - custom-sa.yaml
+commonLabels:
+  appname: sftpgo
+  dr-scope: prerequisites
+
+# Made with Bob

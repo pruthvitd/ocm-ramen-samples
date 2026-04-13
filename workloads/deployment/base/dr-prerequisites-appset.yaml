@@ -1,0 +1,39 @@
+---
+# ApplicationSet to deploy DR prerequisites to ALL managed clusters
+# This ensures infrastructure dependencies exist on all clusters before DR operations
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sftpgo-dr-prerequisites
+  namespace: openshift-gitops
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: sftpgo-dr-prerequisites-placement
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: 'sftpgo-dr-prerequisites-{{name}}'
+      labels:
+        app: sftpgo-dr-prerequisites
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/your-org/your-repo.git
+        targetRevision: main
+        path: workloads/deployment/base/dr-prerequisites
+      destination:
+        server: '{{server}}'
+        namespace: rdr-test
+      syncPolicy:
+        automated:
+          prune: false  # Don't prune prerequisites
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=false
+
+# Made with Bob

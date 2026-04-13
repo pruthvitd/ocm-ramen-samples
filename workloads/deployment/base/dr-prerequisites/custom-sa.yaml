@@ -4,7 +4,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
   name: db-app-sa
-  namespace: regionaldr-testv2
+  namespace: rdr-test
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -15,7 +15,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: db-app-sa
-    namespace: regionaldr-testv2
+    namespace: rdr-test
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -25,7 +25,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: system:openshift:scc:custom
-  namespace: regionaldr-testv2
+  namespace: rdr-test
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 rules:
@@ -41,7 +41,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
   name: system:openshift:scc:custom
-  namespace: regionaldr-testv2
+  namespace: rdr-test
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -49,5 +49,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: db-app-sa
-  namespace: regionaldr-testv2
+  namespace: rdr-test
 

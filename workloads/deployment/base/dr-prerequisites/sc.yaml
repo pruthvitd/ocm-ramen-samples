@@ -2,6 +2,8 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: ocs-storagecluster-cephfs-selinux-relabel
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
 parameters:
   kernelMountOptions: 'context="system_u:object_r:container_file_t:s0"'
   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage

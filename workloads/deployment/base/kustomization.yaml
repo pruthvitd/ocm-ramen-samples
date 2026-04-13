@@ -1,10 +1,15 @@
 ---
-# Main kustomization that references both cluster-scoped and namespace-scoped resources
-# For disaster recovery operations:
-# - cluster-scoped resources are retained by ACM on the cluster
-# - namespace-scoped resources move with the application
+# Main kustomization for DR-enabled application
+# 
+# Deployment Strategy:
+# 1. Deploy dr-prerequisites to BOTH managed clusters first
+# 2. Deploy application-resources via ApplicationSet (will move during DR)
+#
+# DR Behavior:
+# - dr-prerequisites: Protected from deletion, exist on both clusters
+# - application-resources: Move with the application during failover/relocate
 resources:
-  - cluster-scoped
-  - namespace-scoped
+  - dr-prerequisites
+  - application-resources
 
 # Made with Bob
