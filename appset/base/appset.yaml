@@ -1,0 +1,34 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: appset
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: placement
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: appset-{{name}}
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        # Customize in your overlay.
+        path: PATH
+        targetRevision: acm-vm
+      destination:
+        server: '{{server}}'
+        # Customize in your overlay.
+        namespace: NAMESPACE
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true

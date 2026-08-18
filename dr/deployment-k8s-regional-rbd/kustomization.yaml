@@ -4,3 +4,11 @@ resources:
 namespace: deployment-rbd
 commonLabels:
   app: deployment-rbd
+patches:
+  - target:
+      kind: DRPlacementControl
+      name: drpc
+    patch: |-
+      - op: replace
+        path: /spec/preferredCluster
+        value: dr1

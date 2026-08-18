@@ -1,0 +1,6 @@
+---
+resources:
+  - ../../kubevirt/vm-pvc-k8s-regional
+namespace: vm-pvc
+commonLabels:
+  app: vm-pvc

@@ -1,0 +1,7 @@
+---
+resources:
+  - namespace.yaml
+  - binding.yaml
+  - placement.yaml
+  - configmap.yaml
+  - appset.yaml

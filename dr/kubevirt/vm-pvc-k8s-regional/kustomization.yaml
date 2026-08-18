@@ -4,3 +4,11 @@ resources:
 namespace: vm-pvc
 commonLabels:
   app: vm-pvc
+patches:
+  - target:
+      kind: DRPlacementControl
+      name: drpc
+    patch: |-
+      - op: replace
+        path: /spec/preferredCluster
+        value: dr1

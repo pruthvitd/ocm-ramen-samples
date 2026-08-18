@@ -4,7 +4,8 @@ kind: DRPlacementControl
 metadata:
   name: drpc
 spec:
-  preferredCluster: dr1
+  # Customize in your overlay.
+  preferredCluster: PREFERRED_CLUSTER
   drPolicyRef:
     name: dr-policy
   placementRef:
