@@ -1,0 +1,13 @@
+# Base kustomization for the cloudinit-static-ip KubeVirt VM sample.
+# Apply via an overlay (e.g. odr-regional) that sets the storage class
+# and the site-specific IP addresses.
+---
+resources:
+  - namespace.yaml
+  - udn.yaml
+  - nad.yaml
+  - network-config-secret.yaml
+  - vm.yaml
+  - dr-network-patch-config.yaml
+commonLabels:
+  appname: vm-cloudinit-static-ip

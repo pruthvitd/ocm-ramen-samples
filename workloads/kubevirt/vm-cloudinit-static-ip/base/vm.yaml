@@ -1,0 +1,123 @@
+# VM with:
+#   - Primary interface on the UDN (OVN primary-udn) network
+#   - Secondary bridge interface on the flat L2 overlay (default/l2-network)
+#   - cloud-init cloudInitNoCloud with networkDataSecretRef pointing to the
+#     per-VM network-config secret that holds the static IP configuration.
+#
+# The networkDataSecretRef pattern allows Ramen (or an external operator)
+# to patch only the Secret when the application is relocated to the DR site,
+# without mutating the VirtualMachine object itself.
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-server
+  labels:
+    appname: vm-cloudinit-static-ip
+    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      annotations:
+        # Pin the primary-udn IP so IPAMClaim preserves it across
+        # migrations / DR failover (OVN persistent IPAM).
+        network.kubevirt.io/addresses: '{"primary-udn":["192.168.100.10"]}'
+      labels:
+        appname: vm-cloudinit-static-ip
+        kubevirt.io/domain: vm-server
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: primary-udn
+              bridge: {}
+            - name: flatl2-overlay
+              bridge: {}
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: primary-udn
+          pod: {}
+        - name: flatl2-overlay
+          multus:
+            networkName: default/l2-network
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            # networkDataSecretRef decouples the static-IP configuration
+            # from the VM spec.  Patching the Secret on the DR cluster is
+            # sufficient to give the VM the correct DR-site IP address
+            # without restarting it or modifying the VM object.
+            networkDataSecretRef:
+              name: vm-server-network-config
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-client
+  labels:
+    appname: vm-cloudinit-static-ip
+    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      annotations:
+        network.kubevirt.io/addresses: '{"primary-udn":["192.168.100.11"]}'
+      labels:
+        appname: vm-cloudinit-static-ip
+        kubevirt.io/domain: vm-client
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: primary-udn
+              bridge: {}
+            - name: flatl2-overlay
+              bridge: {}
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: primary-udn
+          pod: {}
+        - name: flatl2-overlay
+          multus:
+            networkName: default/l2-network
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkDataSecretRef:
+              name: vm-client-network-config
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }

@@ -1,0 +1,49 @@
+# ConfigMap that records the site-specific static-IP mappings for the
+# network-config secrets.
+#
+# How patching works:
+#   When Ramen moves the application from the DC (preferred) cluster to the
+#   DR cluster (failover) or back (relocate), it needs to update the
+#   vm-server-network-config and vm-client-network-config secrets so that
+#   cloud-init programmes the correct IP on the target site.
+#
+#   An OCM Policy or a pre-sync Argo CD hook reads this ConfigMap, resolves
+#   the target cluster name (from the Placement decision), selects the
+#   matching `drSiteNetworkData` entry, and patches the corresponding
+#   Secret's `networkData` key before the VMs are started.
+#
+# Overlay-specific values (dc-cluster / dr-cluster names and IPs) are
+# customised via the odr-regional kustomization patch.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vm-cloudinit-static-ip-network-patch
+  labels:
+    appname: vm-cloudinit-static-ip
+data:
+  # DC site (preferred cluster) network configuration
+  dc-cluster: dr1
+  dc-vm-server-networkData: |
+    version: 2
+    ethernets:
+      eth1:
+        addresses: [ 192.0.2.20/24 ]
+  dc-vm-client-networkData: |
+    version: 2
+    ethernets:
+      eth1:
+        addresses: [ 192.0.2.10/24 ]
+  # DR site network configuration – patch the Secrets to these values
+  # when the Placement decision switches to the dr-cluster.
+  dr-cluster: dr2
+  dr-vm-server-networkData: |
+    version: 2
+    ethernets:
+      eth1:
+        addresses: [ 192.0.3.20/24 ]
+  dr-vm-client-networkData: |
+    version: 2
+    ethernets:
+      eth1:
+        addresses: [ 192.0.3.10/24 ]

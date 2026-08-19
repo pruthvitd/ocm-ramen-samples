@@ -1,0 +1,30 @@
+# DR overlay: creates the DRPlacementControl for the
+# vm-cloudinit-static-ip application.
+#
+# The DRPC pvcSelector matches VMs (and their PVCs) that carry
+# appname=vm-cloudinit-static-ip.
+#
+# Secret patching at DR failover / relocate:
+#   The dr-network-patch-config ConfigMap (deployed by the workload
+#   kustomization) records site-specific IP addresses for the
+#   vm-server-network-config and vm-client-network-config secrets.
+#   Ramen / an OCM Policy running on the hub reads the current
+#   Placement decision, resolves the target cluster from the ConfigMap,
+#   and patches the networkData key in the two Secrets before the VMs
+#   are started on the DR cluster.  This ensures cloud-init configures
+#   the correct static IP for the secondary interface (eth1) on each site.
+---
+resources:
+  - ../base
+namespace: vm-cloudinit-static-ip
+labels:
+  - pairs:
+      app: vm-cloudinit-static-ip
+patches:
+  - target:
+      kind: DRPlacementControl
+      name: drpc
+    patch: |-
+      - op: replace
+        path: /spec/pvcSelector/matchLabels/appname
+        value: vm-cloudinit-static-ip

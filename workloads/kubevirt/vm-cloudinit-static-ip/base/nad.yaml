@@ -1,0 +1,22 @@
+# Flat L2 secondary NetworkAttachmentDefinition.
+# The VM connects to this overlay network via a bridge interface (eth1)
+# and gets a static IP address injected by cloud-init using the
+# vm-server-network-config / vm-client-network-config secrets.
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: l2-network
+  namespace: default
+  labels:
+    appname: vm-cloudinit-static-ip
+    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "l2-network",
+      "type": "ovn-k8s-cni-overlay",
+      "topology": "layer2",
+      "netAttachDefName": "default/l2-network"
+    }
