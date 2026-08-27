@@ -1,6 +1,6 @@
 # VM with:
-#   - Primary interface on the UDN (OVN primary-udn) network
-#   - Secondary bridge interface on the flat L2 overlay (default/l2-network)
+#   - Primary interface on the UDN (OVN primary-udn) network with static IP
+#   - Persistent volume via DataVolumeTemplate for DR replication
 #   - cloud-init cloudInitNoCloud with networkDataSecretRef pointing to the
 #     per-VM network-config secret that holds the static IP configuration.
 #
@@ -53,8 +53,8 @@ spec:
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk
-          containerDisk:
-            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+          persistentVolumeClaim:
+            claimName: vm-server-root-disk
         - name: cloudinitdisk
           cloudInitNoCloud:
             # networkDataSecretRef decouples the static-IP configuration
@@ -67,6 +67,22 @@ spec:
               #cloud-config
               password: fedora
               chpasswd: { expire: False }
+  # DataVolumeTemplates create PVCs automatically for DR replication
+  dataVolumeTemplates:
+    - metadata:
+        name: vm-server-root-disk
+        labels:
+          appname: vm-cloudinit-static-ip
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+        source:
+          registry:
+            url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"
 ---
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
@@ -111,8 +127,8 @@ spec:
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk
-          containerDisk:
-            image: quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel
+          persistentVolumeClaim:
+            claimName: vm-client-root-disk
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkDataSecretRef:
@@ -121,3 +137,19 @@ spec:
               #cloud-config
               password: fedora
               chpasswd: { expire: False }
+  # DataVolumeTemplates create PVCs automatically for DR replication
+  dataVolumeTemplates:
+    - metadata:
+        name: vm-client-root-disk
+        labels:
+          appname: vm-cloudinit-static-ip
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+        source:
+          registry:
+            url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"
