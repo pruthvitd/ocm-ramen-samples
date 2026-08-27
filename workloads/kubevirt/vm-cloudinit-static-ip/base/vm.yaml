@@ -80,6 +80,7 @@ spec:
           resources:
             requests:
               storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
         source:
           registry:
             url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"
@@ -150,6 +151,7 @@ spec:
           resources:
             requests:
               storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
         source:
           registry:
             url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"
