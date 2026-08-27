@@ -1,0 +1,9 @@
+# Namespace with OVN primary UDN annotation so pods in this namespace
+# can use a primary UserDefinedNetwork.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vm-cloudinit-static-ip
+  labels:
+    k8s.ovn.org/primary-user-defined-network: ""

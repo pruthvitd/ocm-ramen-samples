@@ -1,0 +1,8 @@
+# Infrastructure-only kustomization for VM network resources
+# This should be deployed to ALL DR sites before the application
+---
+resources:
+  - namespace.yaml
+  - udn.yaml
+  # NAD is optional - only include if using secondary networks with Multus
+  # - nad.yaml

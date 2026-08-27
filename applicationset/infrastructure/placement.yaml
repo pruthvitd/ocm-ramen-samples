@@ -1,0 +1,23 @@
+---
+# Placement for infrastructure (informational - not used by List generator)
+# Shows which clusters have DR infrastructure
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: vm-network-infrastructure
+  namespace: openshift-gitops
+  labels:
+    app: vm-network-infrastructure
+spec:
+  numberOfClusters: 2
+  clusterSets:
+    - default
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: name
+              operator: In
+              values:
+                - dr1-aug-27-26
+                - local-cluster

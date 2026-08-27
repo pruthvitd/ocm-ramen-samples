@@ -1,0 +1,42 @@
+---
+# ApplicationSet for VM network infrastructure
+# Deploys namespace + UDN to ALL DR clusters with site-specific subnets
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-network-infrastructure
+  namespace: openshift-gitops
+spec:
+  generators:
+    # Use List generator to explicitly define both clusters with their paths
+    - list:
+        elements:
+          - cluster: dr1-aug-27-26
+            url: https://api.dr1-aug-27-26.odf-devcluster.com:6443
+            path: infrastructure/vm-network/dr1-aug-27-26
+            subnet: 192.168.100.0/24
+          - cluster: local-cluster
+            url: https://cluster-proxy-addon-user.multicluster-engine.svc.cluster.local:9092/local-cluster
+            path: infrastructure/vm-network/local-cluster
+            subnet: 192.168.200.0/24
+  template:
+    metadata:
+      name: 'vm-network-infra-{{cluster}}'
+      labels:
+        app: vm-network-infrastructure
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-vm-static-ip
+        path: '{{path}}'
+      destination:
+        server: '{{url}}'
+        namespace: vm-static-ip
+      syncPolicy:
+        automated:
+          prune: false  # Don't auto-delete infrastructure
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true

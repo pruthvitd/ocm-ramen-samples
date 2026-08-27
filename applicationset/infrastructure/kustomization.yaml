@@ -1,0 +1,9 @@
+---
+# Infrastructure ApplicationSet - deploys to ALL DR clusters
+namespace: openshift-gitops
+resources:
+  - applicationset.yaml
+  - placement.yaml
+labels:
+  - pairs:
+      app: vm-network-infrastructure

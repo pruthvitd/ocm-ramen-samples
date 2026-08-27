@@ -1,0 +1,25 @@
+# Infrastructure for local-cluster (dr2-aug-27-26) site
+# UDN subnet: 192.168.200.0/24 (different third octet from dr1)
+---
+namespace: vm-static-ip
+resources:
+  - ../base
+patches:
+  # Rename namespace to vm-static-ip
+  - target:
+      kind: Namespace
+      name: vm-cloudinit-static-ip
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: vm-static-ip
+
+  # Set site-specific UDN subnet (different from dr1)
+  - target:
+      kind: UserDefinedNetwork
+      name: primary-udn
+    patch: |-
+      - op: replace
+        path: /spec/layer2/subnets
+        value:
+          - "192.168.200.0/24"

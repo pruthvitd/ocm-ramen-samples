@@ -1,0 +1,21 @@
+# Primary Layer2 UserDefinedNetwork with Persistent IPAM so that
+# KubeVirt VMs keep their IP addresses across live-migrations and
+# DR failover/relocate operations.
+---
+apiVersion: k8s.ovn.org/v1
+kind: UserDefinedNetwork
+metadata:
+  name: primary-udn
+  labels:
+    appname: vm-cloudinit-static-ip
+    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
+    ramendr.openshift.io/network-id: "true"
+spec:
+  topology: Layer2
+  layer2:
+    role: Primary
+    subnets:
+      - "192.168.100.0/24"
+    ipam:
+      lifecycle: Persistent
+    mtu: 1400
