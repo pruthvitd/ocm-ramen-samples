@@ -6,7 +6,6 @@
 resources:
   - namespace.yaml
   - udn.yaml
-  - nad.yaml
   - network-config-secret.yaml
   - vm.yaml
   - dr-network-patch-config.yaml

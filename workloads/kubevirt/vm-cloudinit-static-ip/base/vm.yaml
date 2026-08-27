@@ -14,7 +14,6 @@ metadata:
   name: vm-server
   labels:
     appname: vm-cloudinit-static-ip
-    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
 spec:
   runStrategy: Always
   template:
@@ -39,17 +38,12 @@ spec:
           interfaces:
             - name: primary-udn
               bridge: {}
-            - name: flatl2-overlay
-              bridge: {}
         resources:
           requests:
             memory: 1024M
       networks:
         - name: primary-udn
           pod: {}
-        - name: flatl2-overlay
-          multus:
-            networkName: vm-static-ip/l2-network
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk
@@ -91,7 +85,6 @@ metadata:
   name: vm-client
   labels:
     appname: vm-cloudinit-static-ip
-    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
 spec:
   runStrategy: Always
   template:
@@ -114,17 +107,12 @@ spec:
           interfaces:
             - name: primary-udn
               bridge: {}
-            - name: flatl2-overlay
-              bridge: {}
         resources:
           requests:
             memory: 1024M
       networks:
         - name: primary-udn
           pod: {}
-        - name: flatl2-overlay
-          multus:
-            networkName: vm-static-ip/l2-network
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk

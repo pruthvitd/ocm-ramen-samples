@@ -8,8 +8,7 @@ metadata:
   name: primary-udn
   labels:
     appname: vm-cloudinit-static-ip
-    ramendr.openshift.io/k8s-resource-selector: vm-cloudinit-static-ip
-    ramendr.openshift.io/network-id: "true"
+    ramendr.openshift.io/dr-network: "true"
 spec:
   topology: Layer2
   layer2:
