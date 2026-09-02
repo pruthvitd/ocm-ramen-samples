@@ -1,0 +1,15 @@
+# Placement for VM workload - selects active cluster
+# Start on ammahapa-prd-c1, can be changed by Ramen during DR operations
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: vm-static-ip-placement
+  namespace: vm-static-ip
+spec:
+  numberOfClusters: 1
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            name: ammahapa-prd-c1  # Start on cluster 1

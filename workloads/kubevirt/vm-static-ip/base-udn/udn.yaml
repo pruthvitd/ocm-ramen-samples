@@ -1,0 +1,19 @@
+# Primary Layer2 UserDefinedNetwork with Persistent IPAM
+# Deployed to ALL DR clusters as network infrastructure
+---
+apiVersion: k8s.ovn.org/v1
+kind: UserDefinedNetwork
+metadata:
+  name: primary-udn
+  labels:
+    appname: vm-cloudinit-static-ip
+    ramendr.openshift.io/dr-network: "true"
+spec:
+  topology: Layer2
+  layer2:
+    role: Primary
+    subnets:
+      - "192.168.100.0/24"  # Will be patched per site
+    ipam:
+      lifecycle: Persistent
+    mtu: 1400

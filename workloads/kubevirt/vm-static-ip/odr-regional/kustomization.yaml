@@ -1,0 +1,53 @@
+# Kustomization overlay for OpenShift Regional DR (ODF RBD).
+# Patches:
+#   - Renames namespace to vm-static-ip to match ApplicationSet destination
+#   - Adds masquerade on the primary-udn interface so the VM is
+#     live-migratable across nodes.
+#   - Customises the DR-site IP addresses in the network-patch ConfigMap.
+#     Update dc-cluster / dr-cluster to match your actual cluster names
+#     and adjust the IP addresses for each site.
+---
+# Override the namespace to vm-static-ip to match ApplicationSet destination
+namespace: vm-static-ip
+resources:
+  - ../base
+patches:
+  # ------------------------------------------------------------------
+  # Rename the namespace to vm-static-ip to match ApplicationSet
+  # ------------------------------------------------------------------
+  - target:
+      kind: Namespace
+      name: vm-cloudinit-static-ip
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: vm-static-ip
+  # ------------------------------------------------------------------
+  # DR network-patch ConfigMap: update cluster names and IPs to match
+  # your environment.  The DC site keeps the base IPs (192.0.2.x);
+  # set the DR site IPs below.
+  # ------------------------------------------------------------------
+  - target:
+      kind: ConfigMap
+      name: vm-cloudinit-static-ip-network-patch
+    patch: |-
+      - op: replace
+        path: /data/dc-cluster
+        value: dr1
+      - op: replace
+        path: /data/dr-cluster
+        value: dr2
+      - op: replace
+        path: /data/dr-vm-server-networkData
+        value: |
+          version: 2
+          ethernets:
+            eth1:
+              addresses: [ 192.0.3.20/24 ]
+      - op: replace
+        path: /data/dr-vm-client-networkData
+        value: |
+          version: 2
+          ethernets:
+            eth1:
+              addresses: [ 192.0.3.10/24 ]

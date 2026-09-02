@@ -1,0 +1,42 @@
+# Bootstrap Application
+# This is the ONLY resource you create manually
+# It deploys Placement and ApplicationSets from Git
+#
+# Usage:
+#   oc apply -f acm-config/vm-static-ip/bootstrap-application.yaml
+#
+# After creating this, everything else is managed from Git!
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vm-static-ip-bootstrap
+  namespace: openshift-gitops
+  labels:
+    app: vm-static-ip-bootstrap
+    app.kubernetes.io/name: vm-static-ip
+    app.kubernetes.io/component: bootstrap
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+    targetRevision: gitops-udn-primary-vm
+    path: acm-config/vm-static-ip
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

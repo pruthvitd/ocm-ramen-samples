@@ -1,0 +1,24 @@
+# ammahapa-prd-c1 VM overlay
+# vm-server: 192.168.100.10, vm-client: 192.168.100.11
+---
+namespace: vm-static-ip
+
+resources:
+  - ../../base-vms
+
+patches:
+  - target:
+      kind: VirtualMachine
+      name: vm-server
+    patch: |-
+      - op: replace
+        path: /spec/template/metadata/annotations/network.kubevirt.io~1addresses
+        value: '{"primary-udn":["192.168.100.10"]}'
+
+  - target:
+      kind: VirtualMachine
+      name: vm-client
+    patch: |-
+      - op: replace
+        path: /spec/template/metadata/annotations/network.kubevirt.io~1addresses
+        value: '{"primary-udn":["192.168.100.11"]}'

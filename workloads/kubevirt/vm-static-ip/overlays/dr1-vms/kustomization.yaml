@@ -1,0 +1,27 @@
+# DR1 VM overlay - application workload
+# vm-server: 192.168.100.10
+# vm-client: 192.168.100.11
+---
+namespace: vm-static-ip
+
+resources:
+  - ../../base-vms
+
+patches:
+  # VM Server static IP for dr1
+  - target:
+      kind: VirtualMachine
+      name: vm-server
+    patch: |-
+      - op: replace
+        path: /spec/template/metadata/annotations/network.kubevirt.io~1addresses
+        value: '{"primary-udn":["192.168.100.10"]}'
+
+  # VM Client static IP for dr1
+  - target:
+      kind: VirtualMachine
+      name: vm-client
+    patch: |-
+      - op: replace
+        path: /spec/template/metadata/annotations/network.kubevirt.io~1addresses
+        value: '{"primary-udn":["192.168.100.11"]}'

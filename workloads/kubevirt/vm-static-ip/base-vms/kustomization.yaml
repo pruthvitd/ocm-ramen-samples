@@ -1,0 +1,11 @@
+# Base VM application (VMs only, assumes UDN exists)
+# This gets deployed only to the active cluster selected by Placement
+---
+namespace: vm-static-ip
+
+resources:
+  - vm.yaml
+
+commonLabels:
+  appname: vm-cloudinit-static-ip
+  component: application

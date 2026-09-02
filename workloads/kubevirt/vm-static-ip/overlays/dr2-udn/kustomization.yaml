@@ -1,0 +1,17 @@
+# DR2 UDN overlay - network infrastructure only
+# Subnet: 192.168.200.0/24
+---
+namespace: vm-static-ip
+
+resources:
+  - ../../base-udn
+
+patches:
+  # Configure UDN subnet for dr2
+  - target:
+      kind: UserDefinedNetwork
+      name: primary-udn
+    patch: |-
+      - op: replace
+        path: /spec/layer2/subnets/0
+        value: "192.168.200.0/24"

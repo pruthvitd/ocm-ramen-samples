@@ -1,0 +1,16 @@
+# Placement resource for VM static IP workload
+# Selects which cluster runs the VMs (active cluster)
+# Ramen DR will update this during failover/relocate operations
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: vm-static-ip-placement
+  namespace: openshift-gitops
+spec:
+  numberOfClusters: 1
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            name: ammahapa-prd-c1  # Initial active cluster

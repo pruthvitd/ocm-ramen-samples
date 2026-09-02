@@ -1,0 +1,11 @@
+# Base kustomization for the cloudinit-static-ip KubeVirt VM sample.
+# VMs now use DataVolumeTemplates for persistent storage (DR-compatible)
+# Apply via an overlay (e.g. odr-regional) that sets the storage class
+# and the site-specific IP addresses.
+---
+resources:
+  - namespace.yaml
+  - udn.yaml
+  - vm.yaml
+commonLabels:
+  appname: vm-cloudinit-static-ip

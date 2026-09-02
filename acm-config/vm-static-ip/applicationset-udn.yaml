@@ -1,0 +1,52 @@
+# ApplicationSet for UDN (User Defined Network) Infrastructure
+# Deploys UDN to BOTH clusters (ammahapa-prd-c1 AND ammahapa-prd-c2)
+# Each cluster gets a different subnet via overlay
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-static-ip-udn
+  namespace: openshift-gitops
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            environment: production
+            workload: vm-static-ip
+            dr-enabled: "true"
+          # This dynamically matches any cluster with these labels
+          # No need to update YAML when adding new clusters!
+
+  template:
+    metadata:
+      name: 'vm-static-ip-udn-{{name}}'
+      labels:
+        app: vm-static-ip-udn
+        cluster: '{{name}}'
+        component: network-infrastructure
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-udn-primary-vm
+        path: 'workloads/kubevirt/vm-static-ip/overlays/{{name}}-udn'
+
+      destination:
+        server: '{{server}}'
+        namespace: vm-static-ip
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

@@ -1,0 +1,54 @@
+# ApplicationSet for VM application workload - ammahapa clusters
+# Deploys ONLY to the cluster selected by Placement (follows DR decisions)
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-static-ip-vms
+  namespace: openshift-gitops
+spec:
+  generators:
+    # Use clusterDecisionResource to follow Placement decisions
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: vm-static-ip-placement
+        requeueAfterSeconds: 30
+
+  template:
+    metadata:
+      name: 'vm-static-ip-vms-{{clusterName}}'
+      labels:
+        app: vm-static-ip-vms
+        cluster: '{{clusterName}}'
+        component: application
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-udn-primary-vm
+        # {{clusterName}} will be ammahapa-prd-c1 or ammahapa-prd-c2
+        # This generates paths like:
+        # - workloads/kubevirt/vm-static-ip/overlays/ammahapa-prd-c1-vms
+        # - workloads/kubevirt/vm-static-ip/overlays/ammahapa-prd-c2-vms
+        path: 'workloads/kubevirt/vm-static-ip/overlays/{{clusterName}}-vms'
+
+      destination:
+        server: '{{server}}'
+        namespace: vm-static-ip
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

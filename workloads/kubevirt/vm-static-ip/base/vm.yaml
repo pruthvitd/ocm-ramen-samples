@@ -1,0 +1,137 @@
+# VM with:
+#   - Primary interface on the UDN (OVN primary-udn) network with static IP
+#   - Persistent volume via DataVolumeTemplate for DR replication
+#   - cloud-init cloudInitNoCloud with networkDataSecretRef pointing to the
+#     per-VM network-config secret that holds the static IP configuration.
+#
+# The networkDataSecretRef pattern allows Ramen (or an external operator)
+# to patch only the Secret when the application is relocated to the DR site,
+# without mutating the VirtualMachine object itself.
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-server
+  labels:
+    appname: vm-cloudinit-static-ip
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      annotations:
+        # Pin the primary-udn IP so IPAMClaim preserves it across
+        # migrations / DR failover (OVN persistent IPAM).
+        network.kubevirt.io/addresses: '{"primary-udn":["192.168.100.10"]}'
+      labels:
+        appname: vm-cloudinit-static-ip
+        kubevirt.io/domain: vm-server
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: primary-udn
+              bridge: {}
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: primary-udn
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          persistentVolumeClaim:
+            claimName: vm-server-root-disk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+  # DataVolumeTemplates create PVCs automatically for DR replication
+  dataVolumeTemplates:
+    - metadata:
+        name: vm-server-root-disk
+        labels:
+          appname: vm-cloudinit-static-ip
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+        source:
+          registry:
+            url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-client
+  labels:
+    appname: vm-cloudinit-static-ip
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      annotations:
+        network.kubevirt.io/addresses: '{"primary-udn":["192.168.100.11"]}'
+      labels:
+        appname: vm-cloudinit-static-ip
+        kubevirt.io/domain: vm-client
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: primary-udn
+              bridge: {}
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: primary-udn
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          persistentVolumeClaim:
+            claimName: vm-client-root-disk
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+  # DataVolumeTemplates create PVCs automatically for DR replication
+  dataVolumeTemplates:
+    - metadata:
+        name: vm-client-root-disk
+        labels:
+          appname: vm-cloudinit-static-ip
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+        source:
+          registry:
+            url: "docker://quay.io/kubevirt/fedora-with-test-tooling-container-disk:devel"

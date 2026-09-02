@@ -1,0 +1,17 @@
+# Kustomization for VM Static IP ACM Configuration
+# Bundles Placement and ApplicationSets together
+# Deploy this via a bootstrap Application
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: openshift-gitops
+
+resources:
+  - placement.yaml
+  - applicationset-udn.yaml
+  - applicationset-vms.yaml
+
+commonLabels:
+  app.kubernetes.io/name: vm-static-ip
+  app.kubernetes.io/component: acm-config

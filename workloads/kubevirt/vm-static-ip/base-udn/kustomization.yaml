@@ -1,0 +1,12 @@
+# Base UDN infrastructure (network only, no VMs)
+# This gets deployed to ALL DR clusters to establish network infrastructure
+---
+namespace: vm-static-ip
+
+resources:
+  - namespace.yaml
+  - udn.yaml
+
+commonLabels:
+  appname: vm-cloudinit-static-ip
+  component: network-infrastructure

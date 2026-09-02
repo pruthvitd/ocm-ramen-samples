@@ -1,0 +1,52 @@
+# ApplicationSet for UDN infrastructure
+# Deploys to ALL DR clusters to establish network infrastructure
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-static-ip-udn
+  namespace: openshift-gitops
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            # Deploy UDN to both DR clusters
+            - key: name
+              operator: In
+              values:
+                - dr1
+                - dr2
+
+  template:
+    metadata:
+      name: 'vm-static-ip-udn-{{name}}'
+      labels:
+        app: vm-static-ip-udn
+        cluster: '{{name}}'
+        component: network-infrastructure
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-udn-primary-vm
+        path: 'workloads/kubevirt/vm-static-ip/overlays/{{name}}-udn'
+
+      destination:
+        server: '{{server}}'
+        namespace: vm-static-ip
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
