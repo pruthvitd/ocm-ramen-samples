@@ -37,18 +37,12 @@ fi
 
 # Apply labels
 oc label managedcluster "${CLUSTER_NAME}" \
-    name="${CLUSTER_NAME}" \
-    environment=production \
-    workload=vm-static-ip \
     dr-enabled=true \
     --overwrite
 
 echo -e "${GREEN}✓ Successfully labeled ${CLUSTER_NAME}${NC}"
 echo ""
 echo "Labels applied:"
-echo "  name: ${CLUSTER_NAME}"
-echo "  environment: production"
-echo "  workload: vm-static-ip"
 echo "  dr-enabled: true"
 echo ""
 echo "Verify:"

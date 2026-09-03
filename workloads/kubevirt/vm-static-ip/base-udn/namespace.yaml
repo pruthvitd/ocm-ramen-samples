@@ -1,9 +1,11 @@
-# Namespace with OVN primary UDN annotation so pods in this namespace
+# Namespace with OVN primary UDN label so pods in this namespace
 # can use a primary UserDefinedNetwork.
+# IMPORTANT: This label MUST be set when namespace is created.
+# It CANNOT be added/removed after namespace creation.
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: vm-cloudinit-static-ip
+  name: vm-static-ip
   labels:
-    k8s.ovn.org/primary-user-defined-network: ""
+    k8s.ovn.org/primary-user-defined-network: "primary-udn"

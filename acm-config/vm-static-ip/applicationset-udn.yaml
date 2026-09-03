@@ -7,16 +7,16 @@ kind: ApplicationSet
 metadata:
   name: vm-static-ip-udn
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # Deploy after Placement
 spec:
   generators:
     - clusters:
         selector:
           matchLabels:
-            environment: production
-            workload: vm-static-ip
             dr-enabled: "true"
-          # This dynamically matches any cluster with these labels
-          # No need to update YAML when adding new clusters!
+          # Matches all DR-enabled clusters
+          # Add more labels (environment, workload) if you need finer filtering
 
   template:
     metadata:
