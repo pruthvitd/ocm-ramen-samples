@@ -1,0 +1,56 @@
+# Layer 2: VM Workload ApplicationSet (DR-Protected)
+# Deploys VMs ONLY to the cluster selected by Placement
+# Follows Placement decisions - automatically moves VMs during DR failover
+# Uses cluster-specific overlays for static IP translation
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-static-ip-vms
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: vm-static-ip
+    app.kubernetes.io/component: dr-workload
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: vm-static-ip-placement
+        requeueAfterSeconds: 30
+
+  template:
+    metadata:
+      name: 'vm-static-ip-{{clusterName}}'
+      labels:
+        app: vm-static-ip
+        cluster: '{{clusterName}}'
+        component: application
+        layer: workload
+        dr-protected: "true"
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-udn-primary-vm
+        path: 'workloads/kubevirt/vm-static-ip/overlays/{{clusterName}}-vms'
+
+      destination:
+        server: '{{server}}'
+        namespace: vm-static-ip
+
+      syncPolicy:
+        automated:
+          prune: true  # Safe to prune - workload only
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false  # Namespace created by Layer 1 (UDN)
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

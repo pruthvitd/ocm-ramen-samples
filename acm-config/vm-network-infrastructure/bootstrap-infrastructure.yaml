@@ -1,0 +1,43 @@
+# Layer 1: Network Infrastructure Bootstrap
+# Deploy ONCE as a cluster prerequisite
+#
+# This creates UDN on ALL DR clusters and is NOT deleted during DR operations.
+#
+# Usage:
+#   oc apply -f acm-config/vm-network-infrastructure/bootstrap-infrastructure.yaml
+#
+# ⚠️  Deploy this BEFORE deploying the VM workload!
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vm-network-infrastructure
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: vm-network-infrastructure
+    app.kubernetes.io/component: infrastructure
+    layer: infrastructure
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+    targetRevision: gitops-udn-primary-vm
+    path: acm-config/vm-network-infrastructure
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+
+  syncPolicy:
+    automated:
+      prune: false  # DO NOT auto-delete infrastructure
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

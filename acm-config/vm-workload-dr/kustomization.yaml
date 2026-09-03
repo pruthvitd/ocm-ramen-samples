@@ -1,0 +1,16 @@
+# Layer 2: VM Workload Kustomization (DR-Protected)
+# Deployment controlled by Placement, managed by Ramen
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: openshift-gitops
+
+resources:
+  - placement.yaml
+  - applicationset-vms.yaml
+
+commonLabels:
+  app.kubernetes.io/name: vm-static-ip
+  app.kubernetes.io/component: dr-workload
+  layer: workload

@@ -1,0 +1,15 @@
+# Layer 1: Network Infrastructure Kustomization
+# Deploy ONCE as cluster prerequisite
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: openshift-gitops
+
+resources:
+  - applicationset-udn.yaml
+
+commonLabels:
+  app.kubernetes.io/name: vm-network-infrastructure
+  app.kubernetes.io/component: infrastructure
+  layer: infrastructure

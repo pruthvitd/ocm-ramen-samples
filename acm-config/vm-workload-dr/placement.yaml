@@ -1,0 +1,19 @@
+# Layer 2: VM Workload Placement (DR-Protected)
+# This Placement is updated by Ramen during DR operations
+# Controls which cluster runs the VM workload
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: vm-static-ip-placement
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: vm-static-ip
+    app.kubernetes.io/component: dr-placement
+spec:
+  numberOfClusters: 1
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            name: ammahapa-prd-c1  # Initial active cluster (Ramen updates this)

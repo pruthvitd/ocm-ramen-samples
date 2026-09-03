@@ -1,0 +1,47 @@
+# Layer 2: VM Workload Bootstrap (DR-Protected)
+# Deploys Placement and VM ApplicationSet
+# Ramen manages the Placement during DR operations
+#
+# Prerequisites:
+#   - Layer 1 (Network Infrastructure) must be deployed first
+#   - UDN must exist on all DR clusters
+#
+# Usage:
+#   oc apply -f acm-config/vm-workload-dr/bootstrap-workload.yaml
+#
+# After deployment, enroll in Ramen DR protection!
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vm-static-ip-workload
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: vm-static-ip
+    app.kubernetes.io/component: dr-workload
+    layer: workload
+    dr-protected: "true"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+    targetRevision: gitops-udn-primary-vm
+    path: acm-config/vm-workload-dr
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

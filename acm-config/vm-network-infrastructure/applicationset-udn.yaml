@@ -1,0 +1,59 @@
+# Layer 1: Network Infrastructure (Permanent, Cluster Prerequisite)
+# Deploy ONCE to all DR clusters - NOT deleted during DR operations
+# This ApplicationSet is NOT managed by Placement
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vm-network-infrastructure
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: vm-network-infrastructure
+    app.kubernetes.io/component: infrastructure
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            # Use existing ACM labels instead of custom dr-enabled
+            - key: cluster.open-cluster-management.io/clusterset
+              operator: In
+              values:
+                - clusterset-submariner-844b61f9678d4a62b0
+            # Optional: Filter by DR label if available
+            # - key: ramendr.openshift.io/dr-cluster
+            #   operator: Exists
+
+  template:
+    metadata:
+      name: 'vm-network-{{name}}'
+      labels:
+        app: vm-network-infrastructure
+        cluster: '{{name}}'
+        component: network-infrastructure
+        layer: infrastructure
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pruthvitd/ocm-ramen-samples.git
+        targetRevision: gitops-udn-primary-vm
+        path: 'workloads/kubevirt/vm-static-ip/overlays/{{name}}-udn'
+
+      destination:
+        server: '{{server}}'
+        namespace: vm-static-ip
+
+      syncPolicy:
+        automated:
+          prune: false  # DO NOT auto-delete infrastructure!
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
